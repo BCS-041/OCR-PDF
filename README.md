@@ -60,7 +60,6 @@ OUTPUT_FILE = "extracted_prescriptions_v4.json"   # Parsed output file
 
 ## 🖼️ Workflow
 
-```mermaid
 flowchart TD
     A[Prescription URL (JPG/PNG/PDF)] --> B[OCR Preprocessing]
     B --> C[Text Extraction (pytesseract / pdf2image)]
@@ -120,7 +119,3 @@ Output will be saved in:
 ```
 extracted_prescriptions_v4.json
 ```
-
----
-
-Would you like me to also **add a sample `prescriptions.json` file** (with 2–3 dummy URLs) so you or your teammates can test it instantly?
