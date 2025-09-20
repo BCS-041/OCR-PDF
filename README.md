@@ -68,15 +68,6 @@ flowchart TD
     E --> F[📂 Structured JSON Output]
     F --> G[💾 Save to extracted_prescriptions_v4.json]
 
-    %% 🎨 Styles
-    style A fill:#ffdddd,stroke:#e63946,stroke-width:2px,color:#000
-    style B fill:#ffe5b4,stroke:#f4a261,stroke-width:2px,color:#000
-    style C fill:#f1faee,stroke:#457b9d,stroke-width:2px,color:#000
-    style D fill:#d8f3dc,stroke:#2d6a4f,stroke-width:2px,color:#000
-    style E fill:#fef9c3,stroke:#e9c46a,stroke-width:2px,color:#000
-    style F fill:#e0bbff,stroke:#7b2cbf,stroke-width:2px,color:#000
-    style G fill:#caffbf,stroke:#2a9d8f,stroke-width:2px,color:#000
-
 ```
 ---
 
@@ -126,5 +117,5 @@ python prescription_parser.py
 Output will be saved in:
 
 ```
-extracted_prescriptions_v4.json
+extracted_prescriptions.json
 ```
