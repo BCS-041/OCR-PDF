@@ -59,7 +59,7 @@ OUTPUT_FILE = "extracted_prescriptions_v4.json"   # Parsed output file
 ---
 
 ## 🖼️ Workflow
-
+```
 flowchart TD
     A[📥 Prescription URL <br/>(JPG / PNG / PDF)] --> B[🖼️ OCR Preprocessing]
     B --> C[🔎 Text Extraction <br/>(pytesseract / pdf2image)]
@@ -77,7 +77,7 @@ flowchart TD
     style F fill:#e0bbff,stroke:#7b2cbf,stroke-width:2px,color:#000
     style G fill:#caffbf,stroke:#2a9d8f,stroke-width:2px,color:#000
 
-
+```
 ---
 
 ## 📊 Example Output
