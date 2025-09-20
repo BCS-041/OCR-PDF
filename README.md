@@ -79,15 +79,8 @@ OUTPUT_FILE = "extracted_prescriptions_v4.json"   # Parsed output file
 
 ## 🖼️ Workflow
 
-```mermaid
-flowchart TD
-    A[📥 Prescription URL<br/>(JPG / PNG / PDF)] --> B[🖼️ OCR Preprocessing]
-    B --> C[🔎 Text Extraction<br/>(pytesseract / pdf2image)]
-    C --> D[🤖 Parse with LLM<br/>(OpenRouter)]
-    D --> E[💊 Normalize Medicines<br/>+ Patient Data]
-    E --> F[📂 Structured JSON Output]
-    F --> G[💾 Save to extracted_prescriptions_v4.json]
-```
+<img width="399" height="798" alt="image" src="https://github.com/user-attachments/assets/19ebe05e-a33d-47ac-a97b-a255203abeda" />
+
 
 ---
 
