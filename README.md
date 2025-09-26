@@ -203,6 +203,3 @@ MIT License — see [LICENSE](LICENSE)
 * [pdf2image](https://github.com/Belval/pdf2image)
 * [Pillow](https://python-pillow.org/)
 
----
-
-Do you want me to create that visual diagram too?
