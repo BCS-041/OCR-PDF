@@ -1,6 +1,6 @@
 # 🏥 Prescription Parser
 
-This script extracts **structured patient & prescription details** from **handwritten or printed doctor prescriptions**. It supports **images (JPG/PNG)** and **multi-page PDFs**.
+A **Python tool** to extract **structured patient and prescription information** from **handwritten or printed doctor prescriptions**. Supports **images (JPG/PNG)** and **multi-page PDFs**.
 
 ![Python](https://img.shields.io/badge/Python-3.13%2B-blue)
 ![OCR](https://img.shields.io/badge/OCR-Tesseract-green)
@@ -11,62 +11,68 @@ This script extracts **structured patient & prescription details** from **handwr
 
 ## 🚀 Features
 
-- ✅ Supports **JPG / PNG / PDF** inputs
-- ✅ OCR preprocessing for **better text recognition**
-- ✅ Intelligent parsing with **LLM (via OpenRouter)**
-- ✅ Normalizes drug names while **preserving suffixes (XR, DS, Plus, etc.)**
-- ✅ Handles **common OCR errors** with smart corrections
-- ✅ Outputs clean **structured JSON**
+* ✅ Supports **JPG, PNG, and PDF** prescriptions
+* ✅ OCR preprocessing for **enhanced text recognition**
+* ✅ Intelligent parsing with **LLM via OpenRouter**
+* ✅ Normalizes **drug names** while preserving suffixes (XR, DS, Plus, etc.)
+* ✅ Handles **common OCR errors** and abbreviations (OD, BD, TDS, QID, SOS, PRN, STAT)
+* ✅ Produces **clean, structured JSON output**
+* ✅ Flags **suspicious or missing fields** for manual QA
 
 ---
 
 ## 📦 Installation & Requirements
 
 ### Python Dependencies
+
 ```bash
-pip install pytesseract pillow requests pdf2image
+pip install pytesseract pillow requests pdf2image demjson3
 ```
 
 ### System Dependencies
-- **Tesseract OCR** (must be installed & added to PATH)
-- **Poppler** (required for PDF → image conversion)
 
-#### Installation on Ubuntu/Debian:
+* **Tesseract OCR** (must be installed & added to PATH)
+* **Poppler** (required for PDF → image conversion)
+
+#### Ubuntu/Debian:
+
 ```bash
 sudo apt update
 sudo apt install tesseract-ocr poppler-utils
 ```
 
-#### Installation on macOS:
+#### macOS:
+
 ```bash
 brew install tesseract poppler
 ```
 
-#### Installation on Windows:
-Download and install:
-- [Tesseract OCR](https://github.com/UB-Mannheim/tesseract/wiki)
-- [Poppler for Windows](http://blog.alivate.com.au/poppler-windows/)
+#### Windows:
+
+* [Tesseract OCR](https://github.com/UB-Mannheim/tesseract/wiki)
+* [Poppler for Windows](http://blog.alivate.com.au/poppler-windows/)
 
 ---
 
 ## ⚙️ Configuration
 
-Edit these values in the script:
+Edit these values in `prescription_parser.py`:
 
 ```python
-OPENROUTER_API_KEY = ""   # 🔑 Add your OpenRouter API key
+OPENROUTER_API_KEY = ""   # Your OpenRouter API key
 MODEL_NAME = "google/gemini-2.5-flash"
-INPUT_FILE = "prescriptions.json"           # Input JSON with prescription URLs
-OUTPUT_FILE = "extracted_prescriptions_v4.json"   # Parsed output file
+INPUT_FILE = "prescriptions.json"
+OUTPUT_FILE = "extracted_prescriptions.json"
+IMAGES_FOLDER = "images"  # Folder for local prescription files
 ```
 
-> **Note**: You need to obtain an API key from [OpenRouter](https://openrouter.ai/) to use this tool.
+> You must obtain an API key from [OpenRouter](https://openrouter.ai/) to use this tool.
 
 ---
 
 ## 📂 Input Format
 
-`prescriptions.json` should contain a list of objects with prescription URLs:
+`prescriptions.json` should be a list of objects containing prescription URLs:
 
 ```json
 [
@@ -75,12 +81,30 @@ OUTPUT_FILE = "extracted_prescriptions_v4.json"   # Parsed output file
 ]
 ```
 
+Local files in the `images` folder will also be processed automatically.
+
 ---
 
 ## 🖼️ Workflow
 
-<img width="399" height="798" alt="image" src="https://github.com/user-attachments/assets/19ebe05e-a33d-47ac-a97b-a255203abeda" />
+```mermaid
+flowchart TD
+    A[Input Prescription URLs / Local Images] --> B[OCR Preprocessing]
+    B --> C[Text Extraction via Tesseract OCR]
+    C --> D[LLM Parsing via OpenRouter]
+    D --> E[Normalization & Error Correction]
+    E --> F[Structured JSON Output]
+    E --> G[Manual QA Flags for suspicious/missing fields]
+```
 
+**Steps Explained:**
+
+1. **Input**: Prescriptions in JSON or local folder
+2. **OCR Preprocessing**: Enhance contrast & sharpness for better text extraction
+3. **Tesseract OCR**: Convert images/PDF pages into text
+4. **LLM Parsing**: Extract structured fields (patient info, medicines, vitals, diagnostics)
+5. **Normalization & Error Correction**: Correct OCR mistakes, expand medical abbreviations, standardize formats
+6. **Output**: JSON file with `Manual_QA_Flags` for review
 
 ---
 
@@ -89,9 +113,9 @@ OUTPUT_FILE = "extracted_prescriptions_v4.json"   # Parsed output file
 ```json
 {
   "prescription_number": 1,
-  "url": "https://example.com/prescription1.jpg",
+  "source": "https://example.com/prescription1.jpg",
   "parsed_output": {
-    "Patient_Name": "Ram",
+    "Patient_Name": {"Value": "Ram", "Confidence": "high"},
     "Age": 25,
     "Sex": "M",
     "Prescription_Date": "2025-09-14",
@@ -105,7 +129,7 @@ OUTPUT_FILE = "extracted_prescriptions_v4.json"   # Parsed output file
     },
     "Medicines": [
       {
-        "Drug_Name": "Nexito 5 mg",
+        "Drug_Name": {"Value": "Nexito 5 mg", "Confidence": "high"},
         "Dosage": "1 tab",
         "Frequency": "Once daily",
         "Duration": "30 days",
@@ -114,7 +138,9 @@ OUTPUT_FILE = "extracted_prescriptions_v4.json"   # Parsed output file
     ],
     "Diagnostic_Tests": ["Blood Sugar", "Lipid Profile"],
     "Doctor_Name": "Dr. Sanjay Kumar",
-    "Specialization": "Physician"
+    "Specialization": "Physician",
+    "Confidence_Level": {"Overall": "high", "Reason": null},
+    "Manual_QA_Flags": []
   }
 }
 ```
@@ -123,62 +149,60 @@ OUTPUT_FILE = "extracted_prescriptions_v4.json"   # Parsed output file
 
 ## ▶️ Usage
 
-1. Prepare your `prescriptions.json` file with prescription URLs
-2. Configure the script with your OpenRouter API key
-3. Run the parser:
-
 ```bash
 python prescription_parser.py
 ```
 
-4. Output will be saved to: `extracted_prescriptions.json`
+* Processes **URLs in `prescriptions.json`**
+* Processes **local files** in the `images` folder
+* Outputs structured JSON to `extracted_prescriptions.json`
 
 ---
 
 ## 🐛 Troubleshooting
 
-### Common Issues:
+1. **Tesseract not found**
 
-1. **Tesseract not found error**
-   - Ensure Tesseract OCR is installed and added to your system PATH
-   - On Windows, you may need to specify the Tesseract path in code:
-     ```python
-     pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-     ```
+   * Ensure Tesseract OCR is installed and in PATH
+   * On Windows, specify path in code:
 
-2. **PDF conversion issues**
-   - Verify Poppler is installed correctly
-   - On Windows, add Poppler to your PATH or specify the path in code
+   ```python
+   pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+   ```
 
-3. **API errors**
-   - Verify your OpenRouter API key is correct
-   - Check your internet connection
+2. **PDF conversion errors**
+
+   * Verify Poppler installation and PATH
+
+3. **OpenRouter API errors**
+
+   * Check your API key and internet connectivity
 
 ---
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check [issues page](https://github.com/yourusername/prescription-parser/issues).
-
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+1. Fork the repository
+2. Create your branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
 ---
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE)
 
 ---
 
 ## 🙏 Acknowledgments
 
-- [Tesseract OCR](https://github.com/tesseract-ocr/tesseract)
-- [OpenRouter](https://openrouter.ai/) for LLM API access
-- [pdf2image](https://github.com/Belval/pdf2image) for PDF conversion
-- [Pillow](https://python-pillow.org/) for image processing
+* [Tesseract OCR](https://github.com/tesseract-ocr/tesseract)
+* [OpenRouter](https://openrouter.ai/)
+* [pdf2image](https://github.com/Belval/pdf2image)
+* [Pillow](https://python-pillow.org/)
 
 ---
+
+Do you want me to create that visual diagram too?
