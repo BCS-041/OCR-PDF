@@ -10,14 +10,14 @@ from io import BytesIO
 from pdf2image import convert_from_bytes
 import re
 from datetime import datetime
-import demjson3  # pip install demjson3
+import demjson3  # demjson3 is a Python module specifically designed for handling JSON (JavaScript Object Notation) data within Python 3 environments
 
 # ---------------- CONFIG ----------------
-OPENROUTER_API_KEY = ""  #Add your API KEY here
+OPENROUTER_API_KEY = "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"
 MODEL_NAME = "google/gemini-2.5-flash"
-INPUT_FILE = "prescriptions.json" #fetch prescription url or pdf from here
+INPUT_FILE = "prescriptions.json"
 OUTPUT_FILE = "extracted_prescriptions_clean.json"
-IMAGES_FOLDER = "images" #fetch local image data from images folder
+IMAGES_FOLDER = "images"
 
 MASTER_PROMPT = """
 You are an expert medical prescription parser with extensive experience in interpreting handwritten and printed prescriptions.
@@ -47,14 +47,14 @@ Use your medical knowledge to:
     "SpO2": "string or null",
     "BP": "string or null",
     "Pulse_Rate": "string or null",
-    "Respiratory_Rate": null,
-    "Blood_Sugar": null,
-    "BMI": null,
-    "Waist_Circumference": null,
-    "ECG": null,
-    "Fasting_Blood_Sugar": null,
-    "pH": null,
-    "CBC": null
+    "Respiratory_Rate": "string or null",
+    "Blood_Sugar": "string or null",
+    "BMI": "string or null",
+    "Waist_Circumference": "string or null",
+    "ECG": "string or null",
+    "Fasting_Blood_Sugar": "string or null",
+    "pH": "string or null",
+    "CBC": "string or null"
   },
   "Diagnosis_Details": "string or null",
   "Medicines": [
@@ -81,7 +81,12 @@ def preprocess_image(image):
     image = enhancer.enhance(3.0)
     enhancer = ImageEnhance.Sharpness(image)
     image = enhancer.enhance(2.5)
-    return image.point(lambda p: p > 150 and 255)
+    return image.point(lambda p: p > 150 and 255) 
+#lambda p: defines an anonymous function that accepts one argument, p.
+#p > 150 and 255 is the expression that is evaluated and returned. 
+#The behavior depends on the input value for p:
+#If p is greater than 150, the expression p > 150 evaluates to True. Because the and operator is being used, Python then evaluates the second operand, 255, and returns it as the result.
+#If p is not greater than 150, the expression p > 150 evaluates to False. Due to the "short-circuit" behavior of the and operator, Python stops evaluation and immediately returns the value of the first operand, False, without ever looking at the number 255. 
 
 # ---------------- OCR ----------------
 def extract_text_from_image_file(file_path: str) -> str:
@@ -122,7 +127,7 @@ def encode_file_to_base64(file_identifier: str) -> list:
                 pages = convert_from_bytes(r.content)
                 base64_list = []
                 for page in pages:
-                    buf = BytesIO()
+                    buf = BytesIO()  #BytesIO in Python is a class from the io module that provides an in-memory binary stream, behaving like a file object but operating entirely within the program's memory. It is designed to handle binary data (bytes) and offers methods similar to those found on actual file objects, such as read(), write(), seek(), and tell()
                     page.save(buf, format="JPEG")
                     base64_list.append(base64.b64encode(buf.getvalue()).decode("utf-8"))
                 return base64_list
@@ -217,8 +222,8 @@ def process_prescriptions():
 
             results.append({"prescription_number": idx, "source": url, "parsed_output": parsed})
             with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-                json.dump(results, f, indent=2, ensure_ascii=False)
-
+                json.dump(results, f, indent=2, ensure_ascii=False) # "JSON dump" typically refers to the process of converting a Python object (like a dictionary or list) into a JSON-formatted string or writing it directly to a file in JSON format. This is commonly done using the json module in Python.
+                                                                    #ensure_ascii (bool) – If True (the default), the output is guaranteed to have all incoming non-ASCII characters escaped. If False , these characters will be outputted as-is.
             print(f" ✅ Completed URL {idx}")
 
     # --- Step 2: process local images in folder ---
