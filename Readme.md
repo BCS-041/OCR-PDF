@@ -47,5 +47,3 @@ tesseract --help-psm
 * 🌐 Works with both **remote URLs (images/PDFs)** and **local files in `IMAGES_FOLDER`**
 
 ---
-
-Would you like me to also format this into a **ready-to-use README.md** (with headings, emojis, and sections like Installation, Usage, Example)? That way you can directly drop it into GitHub.
