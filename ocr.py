@@ -13,7 +13,7 @@ from datetime import datetime
 import demjson3  # demjson3 is a Python module specifically designed for handling JSON (JavaScript Object Notation) data within Python 3 environments
 
 # ---------------- CONFIG ----------------
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = ""
 MODEL_NAME = "google/gemini-2.5-flash"
 INPUT_FILE = "prescriptions.json"
 OUTPUT_FILE = "extracted_prescriptions_clean.json"
