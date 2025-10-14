@@ -1,0 +1,5 @@
+[build]
+builder = "Nixpacks"
+
+[phases.setup]
+nixPkgs = ["poppler-utils", "tesseract"]
