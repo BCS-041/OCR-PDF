@@ -10,10 +10,9 @@ from io import BytesIO
 from pdf2image import convert_from_bytes
 import re
 from datetime import datetime
-import demjson3  # demjson3 is a Python module specifically designed for handling JSON (JavaScript Object Notation) data within Python 3 environments
+import demjson3
 
 # ---------------- CONFIG ----------------
-OPENROUTER_API_KEY = ""
 MODEL_NAME = "google/gemini-2.5-flash"
 INPUT_FILE = "prescriptions.json"
 OUTPUT_FILE = "extracted_prescriptions_clean.json"
@@ -81,12 +80,7 @@ def preprocess_image(image):
     image = enhancer.enhance(3.0)
     enhancer = ImageEnhance.Sharpness(image)
     image = enhancer.enhance(2.5)
-    return image.point(lambda p: p > 150 and 255) 
-#lambda p: defines an anonymous function that accepts one argument, p.
-#p > 150 and 255 is the expression that is evaluated and returned. 
-#The behavior depends on the input value for p:
-#If p is greater than 150, the expression p > 150 evaluates to True. Because the and operator is being used, Python then evaluates the second operand, 255, and returns it as the result.
-#If p is not greater than 150, the expression p > 150 evaluates to False. Due to the "short-circuit" behavior of the and operator, Python stops evaluation and immediately returns the value of the first operand, False, without ever looking at the number 255. 
+    return image.point(lambda p: p > 150 and 255)
 
 # ---------------- OCR ----------------
 def extract_text_from_image_file(file_path: str) -> str:
@@ -127,7 +121,7 @@ def encode_file_to_base64(file_identifier: str) -> list:
                 pages = convert_from_bytes(r.content)
                 base64_list = []
                 for page in pages:
-                    buf = BytesIO()  #BytesIO in Python is a class from the io module that provides an in-memory binary stream, behaving like a file object but operating entirely within the program's memory. It is designed to handle binary data (bytes) and offers methods similar to those found on actual file objects, such as read(), write(), seek(), and tell()
+                    buf = BytesIO()
                     page.save(buf, format="JPEG")
                     base64_list.append(base64.b64encode(buf.getvalue()).decode("utf-8"))
                 return base64_list
@@ -151,9 +145,9 @@ def encode_file_to_base64(file_identifier: str) -> list:
         return []
 
 # ---------------- OPENROUTER CALL ----------------
-def call_openrouter(ocr_text: str, file_identifier: str) -> dict:
+def call_openrouter(ocr_text: str, file_identifier: str, api_key: str) -> dict:
     headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
 
@@ -192,7 +186,7 @@ def call_openrouter(ocr_text: str, file_identifier: str) -> dict:
         return {"error": str(e)}
 
 # ---------------- MAIN ----------------
-def process_prescriptions():
+def process_prescriptions(api_key: str):
     results = []
 
     # --- Step 1: process URLs from JSON ---
@@ -210,7 +204,7 @@ def process_prescriptions():
             else:
                 ocr_text = extract_text_from_image_file(url)
 
-            parsed = call_openrouter(ocr_text, url)
+            parsed = call_openrouter(ocr_text, url, api_key)
             if "error" in parsed:
                 print(f"⚠️ LLM failed for {url}, using OCR-only fallback")
                 parsed = {
@@ -222,8 +216,7 @@ def process_prescriptions():
 
             results.append({"prescription_number": idx, "source": url, "parsed_output": parsed})
             with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-                json.dump(results, f, indent=2, ensure_ascii=False) # "JSON dump" typically refers to the process of converting a Python object (like a dictionary or list) into a JSON-formatted string or writing it directly to a file in JSON format. This is commonly done using the json module in Python.
-                                                                    #ensure_ascii (bool) – If True (the default), the output is guaranteed to have all incoming non-ASCII characters escaped. If False , these characters will be outputted as-is.
+                json.dump(results, f, indent=2, ensure_ascii=False)
             print(f" ✅ Completed URL {idx}")
 
     # --- Step 2: process local images in folder ---
@@ -239,7 +232,7 @@ def process_prescriptions():
             else:
                 ocr_text = extract_text_from_image_file(file_path)
 
-            parsed = call_openrouter(ocr_text, file_path)
+            parsed = call_openrouter(ocr_text, file_path, api_key)
             if "error" in parsed:
                 print(f"⚠️ LLM failed for {filename}, using OCR-only fallback")
                 parsed = {
@@ -258,4 +251,8 @@ def process_prescriptions():
     print(f"\n📊 All results saved to {OUTPUT_FILE}")
 
 if __name__ == "__main__":
-    process_prescriptions()
+    api_key = input("🔐 Enter your OpenRouter API Key: ").strip()
+    if not api_key:
+        print("❌ API key missing. Exiting.")
+    else:
+        process_prescriptions(api_key)
