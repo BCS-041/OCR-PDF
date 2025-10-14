@@ -1,5 +1,7 @@
+fastapi
+uvicorn
 pytesseract
-Pillow
 pdf2image
+Pillow
 requests
 demjson3
