@@ -162,25 +162,37 @@ def call_openrouter(ocr_text: str, image_base64: str, api_key: str) -> dict:
 # ---------------- API ENDPOINTS ----------------
 @app.get("/")
 async def root():
-    return {"message": "Prescription Parser API", "status": "healthy"}
+    return {
+        "message": "Prescription Parser API", 
+        "status": "healthy",
+        "instructions": "Use POST /parse-prescription with your OpenRouter API key"
+    }
 
 @app.post("/parse-prescription")
 async def parse_prescription(
     file: UploadFile = File(...),
-    api_key: str = Form(None)
+    api_key: str = Form(...)
 ):
-    """Parse a prescription image or PDF."""
-    
-    # Use provided API key or environment variable
-    if not api_key:
-        api_key = os.getenv("OPENROUTER_API_KEY")
+    """Parse a prescription image or PDF using user-provided OpenRouter API key."""
     
     if not api_key:
-        raise HTTPException(status_code=400, detail="OpenRouter API key required")
+        raise HTTPException(status_code=400, detail="OpenRouter API key is required")
+    
+    # Validate file type
+    allowed_extensions = {'jpg', 'jpeg', 'png', 'pdf'}
+    file_extension = file.filename.split('.')[-1].lower() if '.' in file.filename else ''
+    
+    if file_extension not in allowed_extensions:
+        raise HTTPException(
+            status_code=400, 
+            detail="File type not supported. Please upload JPG, PNG, or PDF files."
+        )
     
     # Read file content
     contents = await file.read()
-    file_extension = file.filename.split('.')[-1].lower()
+    
+    if len(contents) == 0:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
     
     try:
         # Extract text based on file type
@@ -192,11 +204,12 @@ async def parse_prescription(
         # Encode image for LLM
         image_base64 = encode_image_to_base64(contents)
         
-        # Call OpenRouter
+        # Call OpenRouter with user's API key
         result = call_openrouter(ocr_text, image_base64, api_key)
         
         return JSONResponse(content={
             "filename": file.filename,
+            "file_type": file_extension,
             "ocr_text": ocr_text,
             "parsed_prescription": result
         })
