@@ -5,3 +5,4 @@ pdf2image
 Pillow
 requests
 demjson3
+python-multipart
